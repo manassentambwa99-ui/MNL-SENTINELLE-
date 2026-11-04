@@ -1,0 +1,46 @@
+{
+  "id": "./",
+  "name": "MNL SENTINEL — Plateforme de renseignement global",
+  "short_name": "MNL SENTINEL",
+  "description": "Globe 3D temps réel : avions, navires, satellites, caméras, séismes, incidents, météo et actualités.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#06030f",
+  "theme_color": "#06030f",
+  "categories": ["utilities", "navigation", "news"],
+  "prefer_related_applications": false,
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Séismes et incidents",
+      "short_name": "Séismes",
+      "description": "Séismes USGS, incidents NASA et nuit",
+      "url": "./?layers=earthquakes,incidents,day_night",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Aviation et satellites",
+      "short_name": "Ciel",
+      "description": "Avions ADS-B et satellites",
+      "url": "./?layers=aircraft,satellites,day_night",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Météo : vent et pluie",
+      "short_name": "Météo",
+      "description": "Vent et radar de pluie",
+      "url": "./?layers=wind,rain,day_night",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
