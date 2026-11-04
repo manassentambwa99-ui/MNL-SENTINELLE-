@@ -281,7 +281,10 @@
     return items;
   }
   async function loadSatellites() {
-    if (typeof satellite === 'undefined' || typeof satellite.json2satrec !== 'function') throw new Error('satellite.js indisponible');
+    for (let i = 0; i < 40 && (typeof satellite === 'undefined' || typeof satellite.json2satrec !== 'function'); i++) {
+      await new Promise(function (r) { setTimeout(r, 500); });      // main.js peut encore le charger depuis un serveur de secours
+    }
+    if (typeof satellite === 'undefined' || typeof satellite.json2satrec !== 'function') throw new Error('satellite.js indisponible (serveurs CDN bloqués ?)');
     if (!sat.loaded) {
       const items = await loadSatDefs();
       sat.objs = []; sat.index.clear();
