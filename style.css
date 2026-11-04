@@ -262,3 +262,14 @@ input:focus, select:focus { border-color: var(--cyan); box-shadow: 0 0 0 2px rgb
   #topbar { gap: 8px; padding: 0 8px; }
   .brand-txt b { font-size: 13px; letter-spacing: 2px; }
 }
+
+/* ---------- Écran de démarrage : journal et boutons ---------- */
+#boot-log { list-style: none; margin: 10px 0 0; padding: 0; width: min(92vw, 520px); max-height: 32vh; overflow-y: auto; text-align: left; font-family: var(--font-mono); font-size: 12px; }
+#boot-log li { position: relative; padding: 2px 0 2px 18px; color: var(--muted); word-break: break-word; }
+#boot-log li::before { content: '•'; position: absolute; left: 3px; }
+#boot-log li.ok   { color: var(--lime); }   #boot-log li.ok::before   { content: '✔'; }
+#boot-log li.warn { color: var(--amber); }  #boot-log li.warn::before { content: '!'; }
+#boot-log li.err  { color: #fda4af; }       #boot-log li.err::before  { content: '✖'; }
+#boot-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; max-width: 92vw; }
+#boot-actions .btn { text-decoration: none; display: inline-block; }
+#boot.error .boot-ring { opacity: .35; animation: none; }
