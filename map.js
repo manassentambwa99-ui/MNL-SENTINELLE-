@@ -58,7 +58,18 @@
     map.on('zoom', function () { cursorCbs.forEach(function (cb) { cb(null, null, map.getZoom()); }); });
     map.on('error', function (e) { console.warn('[MNL] carte :', e && e.error && e.error.message); });
 
-    M.ready = new Promise(function (resolve) { map.once('load', resolve); });
+    // « ready » = le style est chargé : on peut ajouter des couches. On n'attend PAS 'load',
+    // qui attend aussi toutes les tuiles du fond de carte (bloqué si le réseau est lent).
+    M.ready = new Promise(function (resolve) {
+      let done = false, poll = null;
+      const go = function () { if (done) return; done = true; if (poll) clearInterval(poll); resolve(); };
+      const check = function () { try { if (map.getLayer('base-dark')) go(); } catch (e) { /* style pas encore prêt */ } };
+      map.once('style.load', go);
+      map.once('load', go);
+      map.on('styledata', check);
+      poll = setInterval(check, 200);
+      check();
+    });
     return map;
   };
 
