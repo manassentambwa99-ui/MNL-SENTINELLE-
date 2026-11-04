@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#06030f">
+  <title>MNL SENTINEL — hors ligne</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: radial-gradient(circle at 50% 35%, #1a0b3a, #06030f 70%); color: #efeaff; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+    main { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; }
+    h1 { margin: 0; font-size: 28px; letter-spacing: 6px; }
+    h1 b { background: linear-gradient(90deg, #22d3ee, #a78bfa, #f43f9d, #fbbf24); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    p { margin: 0; color: #8f86bd; max-width: 34em; line-height: 1.5; }
+    button { margin-top: 10px; border: 0; border-radius: 10px; padding: 12px 22px; font-size: 15px; color: #fff; cursor: pointer; background: linear-gradient(135deg, #a78bfa, #f43f9d); }
+    .dot { width: 14px; height: 14px; border-radius: 50%; background: #fb923c; box-shadow: 0 0 18px #fb923c; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="dot"></div>
+    <h1><b>MNL</b> SENTINEL</h1>
+    <p>Tu es hors ligne et cette page n'a pas encore été mise en cache. Reconnecte-toi, puis réessaie : une fois chargée en ligne, l'application s'ouvre aussi sans connexion (avec les dernières données reçues).</p>
+    <button onclick="location.reload()">RÉESSAYER</button>
+  </main>
+</body>
+</html>

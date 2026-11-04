@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+  <title>MNL SENTINEL — Plateforme de renseignement global</title>
+  <meta name="description" content="MNL SENTINEL : globe 3D temps réel — avions, navires, satellites, caméras, séismes, incidents, météo et actualités.">
+  <meta name="author" content="MNL">
+  <meta name="theme-color" content="#06030f">
+  <meta name="color-scheme" content="dark">
+
+  <!-- PWA : installable sur téléphone et ordinateur -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MNL SENTINEL">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ÉCRAN DE DÉMARRAGE -->
+  <div id="boot">
+    <div class="boot-ring"><i></i><i></i><i></i></div>
+    <div class="boot-brand"><span class="mnl">MNL</span> SENTINEL</div>
+    <div class="boot-sub">GLOBAL INTELLIGENCE PLATFORM</div>
+    <div class="boot-msg" id="boot-msg">ÉTABLISSEMENT DE LA CONNEXION SÉCURISÉE…</div>
+  </div>
+
+  <!-- CARTE -->
+  <div id="map"></div>
+
+  <!-- BARRE DU HAUT -->
+  <header id="topbar">
+    <button id="btn-menu" class="icon-btn" aria-label="Afficher les couches">☰</button>
+    <div class="brand">
+      <div class="logo">MNL</div>
+      <div class="brand-txt"><b>SENTINEL</b><small>GLOBAL INTELLIGENCE PLATFORM</small></div>
+      <span class="ver">V1.0</span>
+    </div>
+    <div class="stats">
+      <div class="chip c-cyan"><label>ZULU</label><span id="clock">--:--:--Z</span></div>
+      <div class="chip c-lime"><label>STATUT</label><span id="status" class="st-connecting">CONNEXION</span></div>
+      <div class="chip c-amber"><label>COUCHES</label><span id="n-layers">0</span></div>
+      <div class="chip c-magenta"><label>ENTITÉS</label><span id="n-ents">0</span></div>
+    </div>
+    <div class="ctrls">
+      <button id="btn-install" class="btn" hidden title="Installer l'application">INSTALLER</button>
+      <div class="seg" id="seg-proj"><button data-v="3d" class="on">3D</button><button data-v="2d">2D</button></div>
+      <div class="seg" id="seg-base"><button data-v="map" class="on">MAP</button><button data-v="sat">SAT</button></div>
+    </div>
+  </header>
+  <div id="rainbow"></div>
+
+  <!-- PANNEAU DES COUCHES -->
+  <aside id="sidebar">
+    <div class="side-head"><span>COUCHES</span><small>activer / désactiver</small></div>
+    <div id="layer-list"></div>
+
+    <!-- Contrôles liés à certaines couches (apparaissent quand la couche est active) -->
+    <div class="ctl" id="ctl-ais" hidden>
+      <label for="ais-key">Clé AISStream (gratuite)</label>
+      <div class="ctl-row">
+        <input id="ais-key" type="password" placeholder="colle ta clé ici" autocomplete="off">
+        <button id="ais-save" class="btn">OK</button>
+      </div>
+      <small id="ais-state">Inscris-toi sur aisstream.io pour obtenir une clé.</small>
+    </div>
+    <div class="ctl" id="ctl-wind" hidden>
+      <label for="wind-step">Densité du vent</label>
+      <select id="wind-step">
+        <option value="25">Légère</option>
+        <option value="20" selected>Normale</option>
+        <option value="15">Dense</option>
+      </select>
+    </div>
+    <div class="ctl" id="ctl-rain" hidden>
+      <label for="rain-opacity">Radar de pluie</label>
+      <div class="ctl-row">
+        <input id="rain-opacity" type="range" min="0.1" max="1" step="0.05" value="0.7">
+        <button id="rain-play" class="btn" aria-label="Lecture / pause">⏸</button>
+      </div>
+      <small id="rain-time">—</small>
+    </div>
+
+    <div class="legend">
+      <div class="legend-t">LÉGENDE ALTITUDE (avions)</div>
+      <div class="legend-bar"></div>
+      <div class="legend-l"><span>sol</span><span>3 km</span><span>8 km</span><span>12 km+</span></div>
+    </div>
+  </aside>
+
+  <!-- DOCK (droite) -->
+  <aside id="dock">
+    <nav class="tabs" id="dock-tabs">
+      <button data-tab="search">SEARCH</button>
+      <button data-tab="recon">RECON</button>
+      <button data-tab="space">SPACE</button>
+      <button data-tab="alerts">ALERTS</button>
+      <button data-tab="news">NEWS</button>
+    </nav>
+
+    <section class="tab" id="tab-search" hidden>
+      <form id="search-form" class="form">
+        <input id="search-q" type="text" placeholder="Ville, pays, adresse…" autocomplete="off">
+        <button class="btn" type="submit">GO</button>
+      </form>
+      <div id="search-out" class="out"></div>
+    </section>
+
+    <section class="tab" id="tab-recon" hidden>
+      <form id="recon-form" class="form">
+        <input id="recon-q" type="text" placeholder="domaine.com ou adresse IP" autocomplete="off" spellcheck="false">
+        <button class="btn" type="submit">SCAN</button>
+      </form>
+      <p class="hint">Recherche passive : DNS public (Google DoH) et géolocalisation IP. Aucun scan de ports.</p>
+      <div id="recon-out" class="out"></div>
+    </section>
+
+    <section class="tab" id="tab-space" hidden>
+      <div id="space-out" class="out">Active la couche « Satellites » pour suivre la Station spatiale.</div>
+      <div class="form">
+        <button id="iss-go" class="btn" type="button">ALLER À L'ISS</button>
+        <button id="iss-follow" class="btn" type="button">SUIVRE</button>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-alerts" hidden>
+      <div id="alerts-out" class="out"><p class="hint">Aucune alerte pour l'instant.</p></div>
+    </section>
+
+    <section class="tab" id="tab-news" hidden>
+      <nav class="subtabs">
+        <button data-sub="headlines" class="on">TITRES</button>
+        <button data-sub="live">DIRECT</button>
+      </nav>
+      <div id="news-headlines">
+        <form id="news-form" class="form">
+          <input id="news-q" type="text" placeholder="mots-clés (anglais)" autocomplete="off">
+          <button class="btn" type="submit">OK</button>
+        </form>
+        <div id="news-list" class="out"></div>
+      </div>
+      <div id="news-live" hidden>
+        <div id="news-streams" class="chips"></div>
+        <div id="news-frame" class="frame"><p class="hint">Choisis une chaîne.</p></div>
+      </div>
+    </section>
+  </aside>
+
+  <!-- BARRE D'ÉTAT -->
+  <footer id="statusbar">
+    <span class="sb c-cyan">CURSEUR <b id="sb-cursor">—</b></span>
+    <span class="sb c-lime">ZOOM <b id="sb-zoom">—</b></span>
+    <span class="sb sig">© <b>MNL</b> · SENTINEL</span>
+    <span class="sb c-amber hide-m"><kbd>?</kbd> aide · <kbd>F</kbd> plein écran · <kbd>R</kbd> recentrer · <a href="diagnostic.html">diagnostic</a></span>
+  </footer>
+
+  <!-- AIDE -->
+  <div id="help" hidden>
+    <div class="help-card">
+      <h2><span class="mnl">MNL</span> SENTINEL — raccourcis</h2>
+      <ul>
+        <li><kbd>?</kbd> afficher / masquer cette aide</li>
+        <li><kbd>F</kbd> plein écran</li>
+        <li><kbd>R</kbd> recentrer la vue</li>
+        <li><kbd>Échap</kbd> fermer les fenêtres</li>
+        <li>Clic sur un point : détails (avion, séisme, caméra, satellite…)</li>
+        <li>Clic sur un satellite : trace de son orbite</li>
+        <li>Lien partageable : <code>?layers=aircraft,earthquakes,wind</code></li>
+        <li><a href="diagnostic.html">Page de diagnostic</a> : teste chaque source de données</li>
+        <li id="ios-tip" hidden>iPhone : bouton Partager → « Sur l'écran d'accueil » pour installer.</li>
+      </ul>
+      <button id="help-close" class="btn">FERMER</button>
+    </div>
+  </div>
+
+  <div id="toasts"></div>
+
+  <!-- BIBLIOTHÈQUES EXTERNES -->
+  <script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js" crossorigin="anonymous"></script>
+
+  <!-- CODE MNL (l'ordre compte) -->
+  <script src="utils.js"></script>
+  <script src="config.js"></script>
+  <script src="map.js"></script>
+  <script src="layers.js"></script>
+  <script src="ui.js"></script>
+  <script src="pwa.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
