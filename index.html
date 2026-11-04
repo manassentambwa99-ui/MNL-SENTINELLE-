@@ -9,6 +9,37 @@
   <meta name="theme-color" content="#06030f">
   <meta name="color-scheme" content="dark">
 
+  <!-- Outils de démarrage : actifs même si un fichier de l'application est introuvable -->
+  <script>
+    window.MNL_FAILED = [];
+    window.mnlFail = function (el) { var u = (el && (el.src || el.href)) || ''; window.MNL_FAILED.push(u.replace(/^.*\//, '') || 'ressource'); };
+    window.mnlBoot = {
+      say: function (text, level) {
+        var ul = document.getElementById('boot-log'); if (!ul) return;
+        var li = document.createElement('li'); li.className = level || 'info'; li.textContent = text; ul.appendChild(li);
+        while (ul.children.length > 14) ul.removeChild(ul.firstChild);
+      },
+      actions: function () { var a = document.getElementById('boot-actions'); if (a) a.hidden = false; }
+    };
+    window.mnlSkip = function () { var b = document.getElementById('boot'); if (b) b.classList.add('done'); };
+    window.mnlReset = function () {
+      var go = function () { location.reload(); }, p = [];
+      try {
+        if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) p.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); }));
+        if (window.caches && caches.keys) p.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }));
+        Promise.all(p).then(go, go);
+      } catch (e) { go(); }
+    };
+    window.addEventListener('error', function (e) {
+      if (window.MNL && window.MNL.booted) return;
+      window.mnlBoot.say('Erreur : ' + (e.message || 'inconnue') + (e.filename ? ' (' + e.filename.replace(/^.*\//, '') + ':' + e.lineno + ')' : ''), 'err');
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      if (window.MNL && window.MNL.booted) return;
+      window.mnlBoot.say('Erreur : ' + ((e.reason && e.reason.message) || e.reason || 'promesse rejetée'), 'err');
+    });
+  </script>
+
   <!-- PWA : installable sur téléphone et ordinateur -->
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -21,8 +52,9 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" crossorigin="anonymous" media="print" onload="this.media='all'" onerror="mnlFail(this)">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -32,7 +64,14 @@
     <div class="boot-ring"><i></i><i></i><i></i></div>
     <div class="boot-brand"><span class="mnl">MNL</span> SENTINEL</div>
     <div class="boot-sub">GLOBAL INTELLIGENCE PLATFORM</div>
-    <div class="boot-msg" id="boot-msg">ÉTABLISSEMENT DE LA CONNEXION SÉCURISÉE…</div>
+    <div class="boot-msg" id="boot-msg">DÉMARRAGE…</div>
+    <ul id="boot-log" aria-live="polite"></ul>
+    <div id="boot-actions" hidden>
+      <button class="btn" type="button" onclick="location.reload()">RÉESSAYER</button>
+      <button class="btn" type="button" onclick="mnlReset()">VIDER LE CACHE</button>
+      <button class="btn" type="button" onclick="mnlSkip()">CONTINUER</button>
+      <a class="btn" href="diagnostic.html">DIAGNOSTIC</a>
+    </div>
   </div>
 
   <!-- CARTE -->
@@ -186,16 +225,35 @@
   <div id="toasts"></div>
 
   <!-- BIBLIOTHÈQUES EXTERNES -->
-  <script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js" crossorigin="anonymous" onerror="mnlFail(this)"></script>
+  <script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js" crossorigin="anonymous" onerror="mnlFail(this)"></script>
 
   <!-- CODE MNL (l'ordre compte) -->
-  <script src="utils.js"></script>
-  <script src="config.js"></script>
-  <script src="map.js"></script>
-  <script src="layers.js"></script>
-  <script src="ui.js"></script>
-  <script src="pwa.js"></script>
-  <script src="main.js"></script>
+  <script src="utils.js" onerror="mnlFail(this)"></script>
+  <script src="config.js" onerror="mnlFail(this)"></script>
+  <script src="map.js" onerror="mnlFail(this)"></script>
+  <script src="layers.js" onerror="mnlFail(this)"></script>
+  <script src="ui.js" onerror="mnlFail(this)"></script>
+  <script src="pwa.js" onerror="mnlFail(this)"></script>
+  <script src="main.js" onerror="mnlFail(this)"></script>
+
+  <!-- Surveillance : si l'application n'a pas démarré, on affiche ce qui manque -->
+  <script>
+    (function () {
+      setTimeout(function () {
+        if (window.MNL && window.MNL.booted) return;
+        var b = document.getElementById('boot');
+        if (!b || b.classList.contains('done')) return;
+        var need = [['U', 'utils.js'], ['CONFIG', 'config.js'], ['Map', 'map.js'], ['Layers', 'layers.js'], ['ui', 'ui.js']], lines = [];
+        (window.MNL_FAILED || []).forEach(function (f) { lines.push('Fichier non chargé : ' + f); });
+        need.forEach(function (n) { if (!(window.MNL && window.MNL[n[0]])) lines.push('Fichier absent ou en erreur : ' + n[1]); });
+        if (!(window.MNL && typeof window.MNL.Map === 'object' && document.querySelector('#boot-log li'))) lines.push('main.js n\'a pas pu démarrer (fichier absent ou erreur de script).');
+        var seen = {}; lines.forEach(function (l) { if (!seen[l]) { seen[l] = 1; window.mnlBoot.say(l, 'err'); } });
+        window.mnlBoot.say('Vérifie que TOUS les fichiers sont à la racine du dépôt, puis touche VIDER LE CACHE.', 'warn');
+        var m = document.getElementById('boot-msg'); if (m) m.textContent = 'DÉMARRAGE BLOQUÉ';
+        window.mnlBoot.actions();
+      }, (window.MNL_BOOT && window.MNL_BOOT.watchdog) || 14000);
+    })();
+  </script>
 </body>
 </html>
