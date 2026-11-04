@@ -13,7 +13,7 @@
    ========================================================== */
 'use strict';
 
-const VERSION = 'v1.2.0';
+const VERSION = 'v1.3.0';
 const C_SHELL = 'mnl-shell-' + VERSION;
 const C_LIBS  = 'mnl-libs-' + VERSION;
 const C_TILES = 'mnl-tiles-v1';
@@ -38,7 +38,7 @@ const LIBS = [
   'https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js'
 ];
 
-const LIB_HOSTS  = new Set(['unpkg.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com']);
+const LIB_HOSTS  = new Set(['unpkg.com', 'cdn.jsdelivr.net', 'fastly.jsdelivr.net', 'gcore.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com']);
 const TILE_HOSTS = /(^|\.)basemaps\.cartocdn\.com$|^server\.arcgisonline\.com$/;
 const DATA_HOSTS = new Set([
   'earthquake.usgs.gov', 'opensky-network.org', 'celestrak.org', 'api.tfl.gov.uk',
